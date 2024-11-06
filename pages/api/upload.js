@@ -1,57 +1,69 @@
-import formidable from 'formidable';
-import fs from 'fs';
-import axios from 'axios';
-import FormData from 'form-data';
+const express = require('express');
+const multer = require('multer');
+const axios = require('axios');
+const FormData = require('form-data');
+const fs = require('fs');
+const path = require('path');
 
-export const config = {
-  api: {
-    bodyParser: false, // Disable Vercel's default body parser
+const app = express();
+const PORT = 3000;
+
+// Middleware untuk menyajikan file statis
+app.use(express.static(path.join(__dirname)));
+
+// Konfigurasi Multer untuk menyimpan file yang diupload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
   },
-};
+  filename: (req, file, cb) => {
+    cb(null, file.originalname); // Menyimpan dengan nama asli
+  },
+});
 
-const handleUpload = async (req, res) => {
-  const form = new formidable.IncomingForm();
-  
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      console.error('Form Parsing Error:', err);
-      return res.status(500).json({ message: 'Terjadi kesalahan saat mengupload gambar' });
-    }
+const upload = multer({ storage: storage });
 
-    const file = files.image[0]; // Assuming the input field is named 'image'
-    
-    if (!file) {
-      return res.status(400).json({ message: 'Tidak ada file yang diupload' });
-    }
+// Endpoint untuk menerima gambar dan melakukan analisis
+app.post('/upload', upload.single('image'), async (req, res) => {
+  try {
+    // Log the environment variables to check if they are set correctly
+    console.log('API_USER:', process.env.API_USER); // Log API_USER
+    console.log('API_SECRET:', process.env.API_SECRET); // Log API_SECRET
 
-    // Using environment variables for API credentials
-    const apiUser = process.env.API_USER;  // Access API_USER from environment
-    const apiSecret = process.env.API_SECRET;  // Access API_SECRET from environment
+    const imagePath = req.file.path; // Memastikan file berhasil diupload
 
-    if (!apiUser || !apiSecret) {
-      return res.status(500).json({ message: 'API credentials are missing.' });
-    }
-
-    // Now let's send the file to the API
+    // Membuat form-data untuk dikirim ke API
     const formData = new FormData();
-    formData.append('media', fs.createReadStream(file.filepath));
+    formData.append('media', fs.createReadStream(imagePath));
     formData.append('models', 'genai');
-    formData.append('api_user', apiUser);  // Use environment variable
-    formData.append('api_secret', apiSecret);  // Use environment variable
+    formData.append('api_user', process.env.API_USER);  // Use the env variable
+    formData.append('api_secret', process.env.API_SECRET);  // Use the env variable
 
-    try {
-      const response = await axios.post('https://api.sightengine.com/1.0/check.json', formData, {
-        headers: formData.getHeaders(),
-      });
+    // Send the request to the API
+    const response = await axios.post('https://api.sightengine.com/1.0/check.json', formData, {
+      headers: formData.getHeaders(),
+    });
 
-      console.log('API Response:', response.data);
+    // Log the API response for debugging
+    console.log('API Response:', response.data);
 
-      res.status(200).json({ status: 'success', data: response.data });
-    } catch (error) {
-      console.error('API Error:', error.message);
-      res.status(500).json({ message: 'Terjadi kesalahan saat analisis gambar.' });
-    }
-  });
-};
+    // Hapus file setelah diproses
+    fs.unlinkSync(imagePath);
 
-export default handleUpload;
+    // Kirim respon ke frontend
+    res.json({ status: 'success', data: response.data });
+  } catch (error) {
+    console.error('Error:', error.message); // Mencetak pesan error yang lebih rinci
+    res.json({ status: 'error', message: 'Terjadi kesalahan saat analisis gambar.' });
+  }
+});
+
+// Endpoint untuk menampilkan halaman HTML
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Mulai server
+app.listen(PORT, () => {
+  console.log(`Server berjalan di http://localhost:${PORT}`);
+});
