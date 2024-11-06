@@ -26,7 +26,11 @@ const upload = multer({ storage: storage });
 // Endpoint untuk menerima gambar dan melakukan analisis
 app.post('/upload', upload.single('image'), async (req, res) => {
   try {
-    // Log the environment variables to check if they are set correctly
+    // Check if the environment variables exist, if not throw an error
+    if (!process.env.API_USER || !process.env.API_SECRET) {
+      throw new Error('API_USER or API_SECRET environment variable is missing.');
+    }
+    
     console.log('API_USER:', process.env.API_USER); // Log API_USER
     console.log('API_SECRET:', process.env.API_SECRET); // Log API_SECRET
 
@@ -54,7 +58,7 @@ app.post('/upload', upload.single('image'), async (req, res) => {
     res.json({ status: 'success', data: response.data });
   } catch (error) {
     console.error('Error:', error.message); // Mencetak pesan error yang lebih rinci
-    res.json({ status: 'error', message: 'Terjadi kesalahan saat analisis gambar.' });
+    res.json({ status: 'error', message: error.message });
   }
 });
 
