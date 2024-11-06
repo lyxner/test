@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Upload Gambar untuk Analisis</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Gambar untuk Analisis</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" name="image" id="image" accept="image/*" required>
+            <button type="submit">Upload dan Analisis</button>
+        </form>
+        
+        <div id="imageContainer" class="image-container" style="display: none;">
+            <h2>Gambar yang Diupload:</h2>
+            <img id="uploadedImage" src="" alt="Uploaded Image" class="preview-image">
+        </div>
+
+        <div id="result" class="result-box" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('image').addEventListener('change', function (event) {
+            const fileInput = document.getElementById('image');
+            const file = fileInput.files[0]; // Ambil file yang diupload
+
+            // Menampilkan gambar yang diupload
+            const imageUrl = URL.createObjectURL(file);
+            document.getElementById('uploadedImage').src = imageUrl;
+            document.getElementById('imageContainer').style.display = 'block';
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Mencegah form submit default
+
+            const formData = new FormData();
+            const fileInput = document.getElementById('image');
+            const file = fileInput.files[0]; // Ambil file yang diupload
+            formData.append('image', file); // Menambahkan file ke FormData
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Data respons:', data);
+
+                // Pastikan data.data memiliki properti yang diinginkan
+                if (data.status === 'success') {
+                    const aiGeneratedProb = data.data.type.ai_generated; // Ambil probabilitas dari data
+                    if (aiGeneratedProb) {
+                        document.getElementById('result').innerText = `Gambar ini dibuat oleh AI dengan probabilitas: ${aiGeneratedProb * 100}%`;
+                    } else {
+                        document.getElementById('result').innerText = 'Tidak ada data probabilitas.';
+                    }
+                } else {
+                    document.getElementById('result').innerText = 'Gagal menganalisis gambar: ' + data.message;
+                }
+                document.getElementById('result').style.display = 'block'; // Menampilkan hasil
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerText = 'Terjadi kesalahan saat mengupload gambar.';
+                document.getElementById('result').style.display = 'block'; // Menampilkan hasil
+            });
+        });
+    </script>
+</body>
+</html>

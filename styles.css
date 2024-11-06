@@ -1,0 +1,81 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  padding: 20px;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+input[type="file"] {
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+.container {
+  display: flex; /* Menggunakan flexbox */
+  flex-direction: column; /* Mengatur arah flex ke kolom */
+  align-items: center; /* Memusatkan konten secara horizontal */
+  justify-content: center; /* Memusatkan konten secara vertikal */
+  min-height: 100vh; /* Memastikan kontainer minimal setinggi viewport */
+}
+
+.image-container {
+  margin-top: 20px;
+  border: 1px solid #ccc; /* Gaya border */
+  padding: 10px; /* Padding untuk ruang di dalam kotak */
+  border-radius: 5px; /* Sudut bulat pada border */
+  max-width: 300px; /* Ukuran maksimum untuk kontainer gambar */
+  display: flex; /* Menggunakan flexbox untuk konten di dalam */
+  justify-content: center; /* Memusatkan gambar secara horizontal */
+  align-items: center; /* Memusatkan gambar secara vertikal */
+}
+
+.preview-image {
+  width: 100%; /* Membuat gambar mengambil lebar penuh dari kontainer */
+  height: auto; /* Mengatur tinggi otomatis untuk mempertahankan rasio aspek */
+}
+
+
+
+
+
+.result-box {
+  border: 2px solid #dc3545;
+  padding: 5px; /* Mengurangi padding */
+  margin-top: 20px;
+  border-radius: 5px;
+  background-color: #f8d7da;
+  color: #721c24;
+  max-width: 90%; /* Memperkecil lebar maksimal */
+  margin-left: auto;
+  margin-right: auto;
+  display: none;
+}
