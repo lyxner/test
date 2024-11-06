@@ -41,7 +41,7 @@
             const file = fileInput.files[0]; // Ambil file yang diupload
             formData.append('image', file); // Menambahkan file ke FormData
 
-            fetch('/upload', {
+            fetch('/api/upload', {  // Change from /upload to /api/upload
                 method: 'POST',
                 body: formData,
             })
