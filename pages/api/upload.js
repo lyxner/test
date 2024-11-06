@@ -1,73 +1,45 @@
-const express = require('express');
-const multer = require('multer');
-const axios = require('axios');
-const FormData = require('form-data');
-const fs = require('fs');
-const path = require('path');
+// upload.js
+import axios from 'axios';
+import FormData from 'form-data';
+import fs from 'fs';
+import path from 'path';
 
-const app = express();
-const PORT = 3000;
+// Log all environment variables to see if API_USER and API_SECRET are set correctly
+console.log('All environment variables:', process.env);
 
-// Middleware untuk menyajikan file statis
-app.use(express.static(path.join(__dirname)));
-
-// Konfigurasi Multer untuk menyimpan file yang diupload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname); // Menyimpan dengan nama asli
-  },
-});
-
-const upload = multer({ storage: storage });
-
-// Endpoint untuk menerima gambar dan melakukan analisis
-app.post('/upload', upload.single('image'), async (req, res) => {
-  try {
-    // Check if the environment variables exist, if not throw an error
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
+    // Check if the environment variables are defined
     if (!process.env.API_USER || !process.env.API_SECRET) {
-      throw new Error('API_USER or API_SECRET environment variable is missing.');
+      console.error('API_USER or API_SECRET is missing!');
+      return res.status(500).json({
+        status: 'error',
+        message: 'API_USER or API_SECRET environment variables are not defined.',
+      });
     }
-    
-    console.log('API_USER:', process.env.API_USER); // Log API_USER
-    console.log('API_SECRET:', process.env.API_SECRET); // Log API_SECRET
 
-    const imagePath = req.file.path; // Memastikan file berhasil diupload
+    try {
+      const formData = new FormData();
+      const file = req.body.image; // Assuming you're receiving the image from the frontend
 
-    // Membuat form-data untuk dikirim ke API
-    const formData = new FormData();
-    formData.append('media', fs.createReadStream(imagePath));
-    formData.append('models', 'genai');
-    formData.append('api_user', process.env.API_USER);  // Use the env variable
-    formData.append('api_secret', process.env.API_SECRET);  // Use the env variable
+      formData.append('media', file); // Append the image to the form data
+      formData.append('models', 'genai');
+      formData.append('api_user', process.env.API_USER);
+      formData.append('api_secret', process.env.API_SECRET);
 
-    // Send the request to the API
-    const response = await axios.post('https://api.sightengine.com/1.0/check.json', formData, {
-      headers: formData.getHeaders(),
-    });
+      const response = await axios.post(
+        'https://api.sightengine.com/1.0/check.json',
+        formData,
+        { headers: formData.getHeaders() }
+      );
 
-    // Log the API response for debugging
-    console.log('API Response:', response.data);
-
-    // Hapus file setelah diproses
-    fs.unlinkSync(imagePath);
-
-    // Kirim respon ke frontend
-    res.json({ status: 'success', data: response.data });
-  } catch (error) {
-    console.error('Error:', error.message); // Mencetak pesan error yang lebih rinci
-    res.json({ status: 'error', message: error.message });
+      // Respond with the analysis result
+      res.status(200).json({ status: 'success', data: response.data });
+    } catch (error) {
+      console.error('Error:', error.message);
+      res.status(500).json({ status: 'error', message: 'Error processing the image.' });
+    }
+  } else {
+    res.status(405).json({ status: 'error', message: 'Method Not Allowed' });
   }
-});
-
-// Endpoint untuk menampilkan halaman HTML
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Mulai server
-app.listen(PORT, () => {
-  console.log(`Server berjalan di http://localhost:${PORT}`);
-});
+}

@@ -41,7 +41,7 @@
             const file = fileInput.files[0]; // Ambil file yang diupload
             formData.append('image', file); // Menambahkan file ke FormData
 
-            fetch('/api/upload', {  // Change from /upload to /api/upload
+            fetch('/api/upload', {  // Use the correct API route
                 method: 'POST',
                 body: formData,
             })
@@ -49,7 +49,6 @@
             .then(data => {
                 console.log('Data respons:', data);
 
-                // Pastikan data.data memiliki properti yang diinginkan
                 if (data.status === 'success') {
                     const aiGeneratedProb = data.data.type.ai_generated; // Ambil probabilitas dari data
                     if (aiGeneratedProb) {
