@@ -5,7 +5,7 @@ import FormData from 'form-data';
 
 export const config = {
   api: {
-    bodyParser: false, // Disable Vercel's default body parser to handle file uploads manually
+    bodyParser: false, // Disable Vercel's default body parser
   },
 };
 
@@ -24,12 +24,20 @@ const handleUpload = async (req, res) => {
       return res.status(400).json({ message: 'Tidak ada file yang diupload' });
     }
 
+    // Using environment variables for API credentials
+    const apiUser = process.env.API_USER;  // Access API_USER from environment
+    const apiSecret = process.env.API_SECRET;  // Access API_SECRET from environment
+
+    if (!apiUser || !apiSecret) {
+      return res.status(500).json({ message: 'API credentials are missing.' });
+    }
+
     // Now let's send the file to the API
     const formData = new FormData();
     formData.append('media', fs.createReadStream(file.filepath));
     formData.append('models', 'genai');
-    formData.append('api_user', '568872453');  // Replace with your API user
-    formData.append('api_secret', 'aRhBT7BY4dnFSv7RSRjmSRw54ff4GYcj');  // Replace with your API secret
+    formData.append('api_user', apiUser);  // Use environment variable
+    formData.append('api_secret', apiSecret);  // Use environment variable
 
     try {
       const response = await axios.post('https://api.sightengine.com/1.0/check.json', formData, {
