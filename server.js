@@ -13,8 +13,8 @@ app.post('/upload', upload.single('image'), async (req, res) => {
     const formData = new FormData();
     formData.append('media', fs.createReadStream(imagePath));
     formData.append('models', 'genai');
-    formData.append('api_user', apiUser);  // Use environment variable
-    formData.append('api_secret', apiSecret);  // Use environment variable
+    formData.append('api_user', 568872453);  // Use environment variable
+    formData.append('api_secret', aRhBT7BY4dnFSv7RSRjmSRw54ff4GYcj);  // Use environment variable
 
     // Send request to the API
     const response = await axios.post('https://api.sightengine.com/1.0/check.json', formData, {
